@@ -3,14 +3,14 @@ import Head from 'next/head';
 
 export default function Home() {
   const [input, setInput] = useState('');
-  const [tone, setTone] = useState('professional');
+  const [tone, setTone] = useState('formal'); // Changed from 'professional' to 'formal'
   const [output, setOutput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const tones = {
-    professional: 'Professional and formal',
-    warm: 'Warm and friendly',
-    concise: 'Concise and to-the-point',
+    formal: 'Formal and professional',
+    friendly: 'Friendly and approachable',
+    direct: 'Direct and concise',
     casual: 'Casual and conversational',
     persuasive: 'Persuasive and compelling',
     empathetic: 'Empathetic and understanding'
@@ -37,12 +37,15 @@ export default function Home() {
       const data = await response.json();
       
       if (response.ok) {
-        setOutput(data.email);
+        // Make sure we're using the correct property name
+        setOutput(data.email || data.message || 'No email generated');
       } else {
         setOutput('Sorry, there was an error generating your email. Please try again.');
+        console.error('API Error:', data);
       }
     } catch (error) {
       setOutput('Sorry, there was an error generating your email. Please try again.');
+      console.error('Fetch Error:', error);
     } finally {
       setIsLoading(false);
     }
