@@ -9,7 +9,36 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: 'Missing input or tone' });
   }
 
+  // Debug logging
+  console.log('API Called with:', { input, tone });
+
   try {
+    const promptContent = `You are a professional email writing assistant. Transform the user's rough input into a well-structured, grammatically correct, professional email.
+
+USER INPUT: "${input}"
+REQUESTED TONE: ${tone}
+
+CRITICAL INSTRUCTIONS:
+1. NEVER use generic templates or placeholder text
+2. READ the user input carefully and understand what they actually want to communicate
+3. Fix ALL grammar, spelling, and punctuation errors
+4. Improve sentence structure and clarity
+5. Format numbers properly (e.g., $2,324 instead of $2324)
+6. Fix typos (e.g., "travek" should be "travel", "vosts" should be "costs")
+7. Make the language professional and clear
+8. Create a specific subject line based on the actual content
+9. Write a complete email that addresses the user's specific request
+
+EXAMPLE TRANSFORMATION:
+Input: "need approve budget travek asia supplier vosts $2324"
+Should become: A clear email requesting approval for a $2,324 travel budget to Asia including supplier costs
+
+DO NOT use generic phrases like "This initiative represents a strategic opportunity" unless it actually relates to the user's specific request.
+
+Write a professional email that directly addresses what the user is asking for:`;
+
+    console.log('Sending prompt:', promptContent);
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -21,48 +50,18 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "user",
-            content: `You are a professional email writing assistant. Your task is to transform the user's rough input into a well-structured, grammatically correct, professional email.
-
-USER INPUT: "${input}"
-REQUESTED TONE: ${tone}
-
-INSTRUCTIONS:
-1. Fix ALL grammar, spelling, and punctuation errors
-2. Improve sentence structure and clarity
-3. Format numbers properly (e.g., $24,234 instead of $24234)
-4. Fix typos (e.g., "travek" should be "travel")
-5. Make the language more professional and clear
-6. Create a proper subject line
-7. Structure it as a complete email with greeting, body, and closing
-
-TONE GUIDELINES:
-- formal: Professional, respectful, structured
-- friendly: Warm but professional, approachable
-- direct: Clear, concise, straight to the point
-- casual: Relaxed but still professional
-- persuasive: Compelling, emphasizing benefits
-- empathetic: Understanding, considerate
-
-OUTPUT FORMAT:
-Subject: [Clear, descriptive subject line]
-
-Dear [Recipient Name],
-
-[Well-structured email body that clearly communicates the user's intent with proper grammar and professional language]
-
-Best regards,
-[Your Name]
-
-Generate the email now:`
+            content: promptContent
           }
         ]
       })
     });
 
     const data = await response.json();
+    console.log('Claude response:', data);
     
     if (response.ok) {
       const email = data.content[0].text;
+      console.log('Generated email:', email);
       res.status(200).json({ email });
     } else {
       console.error('Claude API Error:', data);
